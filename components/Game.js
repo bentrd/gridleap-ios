@@ -13,9 +13,10 @@ const CustomButton = (props) => {
                 {
                     backgroundColor: pressed
                         ? 'wheat'
-                        : 'white'
+                        : '#eee'
                 },
-                styles.button
+                styles.button,
+                props.style
             ]}>
             {props.children}
         </Pressable>
@@ -55,6 +56,8 @@ const Tile = (props) => {
 const Grid = (props) => {
     const navigation = useNavigation();
     const size = props.size;
+    const [currNum, setCurrNum] = React.useState(1);
+    const [playing, setPlaying] = React.useState(true);
     const [grid, setGrid] = React.useState(() => {
         var grid = [];
         for (var i = 0; i < size; i++) {
@@ -65,7 +68,6 @@ const Grid = (props) => {
         }
         return grid;
     });
-    const [currNum, setCurrNum] = React.useState(1);
 
     const reset = () => {
         var g = [];
@@ -77,6 +79,7 @@ const Grid = (props) => {
         }
         setGrid(g);
         setCurrNum(1);
+        setPlaying(true);
     }
 
     const deletePossible = () => {
@@ -114,23 +117,21 @@ const Grid = (props) => {
     }
 
     const next = (i, j) => {
-        const self = grid[i][j];
-        if (self.status == 'possible') {
+        if (grid[i][j].status == 'possible') {
             setTile(i, j, 'taken', currNum);
             setCurrNum(currNum + 1);
             deletePossible();
             showPossible(i, j);
         }
-
     }
 
     const gameOver = () => {
-        if (currNum == 26) return;
         for (var i = 0; i < size; i++) {
             for (var j = 0; j < size; j++) {
                 if (grid[i][j].status == 'taken') setTile(i, j, 'lost');
             }
         }
+        setTimeout(() => setPlaying(false), 500);
     }
 
     const createRow = (i) => {
@@ -138,6 +139,31 @@ const Grid = (props) => {
             return <Tile key={`${i}:${j}`} size={size} status={grid[i][j].status} value={grid[i][j].value} onPress={() => next(i, j)} />
         });
         return <View key={`${i}:`} style={styles.row}>{tiles}</View>
+    }
+
+    const PlayAgainPopUp = () => {
+        if (!playing) {
+            return (
+                <View style={styles.popupwrap}>
+                    <View style={styles.popup}>
+                        <Pressable onPress={() => setPlaying(true)} style={{ alignSelf: 'flex-end', padding: 0, margin: 0 }}><Icon name='x' type='feather' /></Pressable>
+                        <View style={styles.scorewrap}>
+                            <Text style={styles.yourscore}>SCORE:</Text>
+                            <Text style={styles.score}>{currNum - 1}</Text>
+                        </View>
+                        <View style={styles.bestscorewrap}>
+                            <Text style={styles.yourscore, { fontSize: 20 }}>BEST:</Text>
+                            <Text style={styles.score, { fontSize: 25 }}>25</Text>
+                        </View>
+                        <CustomButton style={{ width: '90%', marginBottom: 5 }} onPress={() => reset()}>
+                            <Text style={styles.popupbuttons}>play again</Text>
+                        </CustomButton>
+                        <CustomButton style={{ width: '90%' }} onPress={() => navigation.navigate('home')}>
+                            <Text style={styles.popupbuttons}>menu</Text>
+                        </CustomButton>
+                    </View>
+                </View>)
+        } else return <></>
     }
 
     const createGrid = () => {
@@ -155,6 +181,7 @@ const Grid = (props) => {
                     </CustomButton>
                 </View>
                 <View style={styles.grid}>{rows}</View>
+                <PlayAgainPopUp />
             </>
         )
     }
@@ -232,5 +259,52 @@ const styles = StyleSheet.create({
     },
     spacer: {
         height: '15%'
+    },
+    popupwrap: {
+        height: Dimensions.get('window').height,
+        width: Dimensions.get('window').width,
+        position: 'absolute',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#00000066',
+    },
+    popup: {
+        width: 0.7 * Dimensions.get('window').width,
+        height: 0.75 * Dimensions.get('window').width,
+        backgroundColor: 'white',
+        borderRadius: 30,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: 10
+    },
+    scorewrap: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+    },
+    yourscore: {
+        fontFamily: 'Questrial',
+        fontSize: 30,
+        color: '#666'
+    },
+    score: {
+        fontFamily: 'Questrial',
+        fontSize: 50,
+        color: '#242424',
+        margin: 10
+    },
+    bestscorewrap: {
+        width: 100,
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        alignItems: 'center',
+        backgroundColor: '#f5deb3aa',
+        borderRadius: 10
+    },
+    popupbuttons: {
+        fontSize: 30
     }
 });
