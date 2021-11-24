@@ -25,6 +25,9 @@
         "backgroundColor": "#FFFFFF"
       }
     },
+    "config": {
+      "googleMobileAdsAppId": "ca-app-pub-5015586611437235~2777939139"
+    },
     "web": {
       "favicon": "./assets/favicon.png"
     }
