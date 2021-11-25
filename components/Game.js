@@ -247,7 +247,6 @@ const Grid = (props) => {
     }, [sound])
     return (
         <>
-            <Text style={{ color: 'white', fontSize: 30 }}>{Number(volume).toFixed(1)}</Text>
             {createGrid()}
         </>
     );
