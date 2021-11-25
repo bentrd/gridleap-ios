@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Title, Ad } from '../views/HomeScreen';
 import { Icon } from 'react-native-elements'
 import { useNavigation } from '@react-navigation/native';
+import { Audio } from 'expo-av';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CustomButton = (props) => {
     return (
@@ -58,6 +60,8 @@ const Grid = (props) => {
     const size = props.size;
     const [currNum, setCurrNum] = React.useState(1);
     const [playing, setPlaying] = React.useState(true);
+    const [sound, setSound] = React.useState();
+    const [volume, setVolume] = React.useState();
     const [grid, setGrid] = React.useState(() => {
         var grid = [];
         for (var i = 0; i < size; i++) {
@@ -69,7 +73,20 @@ const Grid = (props) => {
         return grid;
     });
 
+    React.useEffect(() => getData('@volume'), [])
+
+    const getData = async (key) => {
+        try {
+            const value = await AsyncStorage.getItem(key);
+            if (value !== null) setVolume(value);
+            else setVolume('0.5');
+        } catch (e) {
+            // error reading value
+        }
+    }
+
     const reset = () => {
+        playSound('click');
         var g = [];
         for (var i = 0; i < size; i++) {
             g[i] = [];
@@ -116,22 +133,43 @@ const Grid = (props) => {
         setGrid(g);
     }
 
+    const playSound = async (type) => {
+        const getPath = () => {
+            if (type == 'win') return require('../assets/sounds/win.mp3');
+            else if (type == 'lost') return require('../assets/sounds/lost.mp3');
+            else if (type == 'click') return require('../assets/sounds/click.mp3');
+            else return require('../assets/sounds/pop.mp3');
+        }
+        try {
+            const { sound } = await Audio.Sound.createAsync(
+                getPath()
+            );
+            setSound(sound);
+            await sound.setVolumeAsync((Number(volume) / 4).toFixed(2));
+            await sound.playAsync();
+        } catch (error) { }
+    }
+
     const next = (i, j) => {
         if (grid[i][j].status == 'possible') {
             setTile(i, j, 'taken', currNum);
             setCurrNum(currNum + 1);
             deletePossible();
             showPossible(i, j);
+            playSound();
         }
     }
 
+
     const gameOver = () => {
+        if (currNum == 25) setTimeout(() => playSound('win'), 200);
+        else setTimeout(() => playSound('lost'), 200);
         for (var i = 0; i < size; i++) {
             for (var j = 0; j < size; j++) {
                 if (grid[i][j].status == 'taken') setTile(i, j, 'lost');
             }
         }
-        setTimeout(() => setPlaying(false), 500);
+        setTimeout(() => setPlaying(false), 1200);
     }
 
     const createRow = (i) => {
@@ -155,10 +193,15 @@ const Grid = (props) => {
                             <Text style={styles.yourscore, { fontSize: 20 }}>BEST:</Text>
                             <Text style={styles.score, { fontSize: 25 }}>25</Text>
                         </View>
-                        <CustomButton style={{ width: '90%', marginBottom: 5 }} onPress={() => reset()}>
+                        <CustomButton style={{ width: '90%', marginBottom: 5 }} onPress={() => {
+                            reset();
+                        }}>
                             <Text style={styles.popupbuttons}>play again</Text>
                         </CustomButton>
-                        <CustomButton style={{ width: '90%' }} onPress={() => navigation.navigate('home')}>
+                        <CustomButton style={{ width: '90%' }} onPress={() => {
+                            navigation.navigate('home');
+                            playSound('click');
+                        }}>
                             <Text style={styles.popupbuttons}>menu</Text>
                         </CustomButton>
                     </View>
@@ -173,10 +216,15 @@ const Grid = (props) => {
         return (
             <>
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '90%', height: 75, marginBottom: 20 }}>
-                    <CustomButton onPress={() => navigation.navigate('home')}>
+                    <CustomButton onPress={() => {
+                        navigation.navigate('home');
+                        playSound('click');
+                    }}>
                         <Icon name='chevron-left' type='feather' size={30} />
                     </CustomButton>
-                    <CustomButton onPress={() => reset()}>
+                    <CustomButton onPress={() => {
+                        reset();
+                    }}>
                         <Icon name='rotate-ccw' type='feather' />
                     </CustomButton>
                 </View>
@@ -188,10 +236,20 @@ const Grid = (props) => {
 
     React.useEffect(() => {
         reset();
-    }, [])
+    }, []);
 
+    React.useEffect(() => {
+        return sound
+            ? () => {
+                sound.unloadAsync();
+            }
+            : undefined;
+    }, [sound])
     return (
-        createGrid()
+        <>
+            <Text style={{ color: 'white', fontSize: 30 }}>{Number(volume).toFixed(1)}</Text>
+            {createGrid()}
+        </>
     );
 }
 
