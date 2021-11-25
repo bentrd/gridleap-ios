@@ -6,6 +6,7 @@ import { Icon } from 'react-native-elements'
 import { useNavigation } from '@react-navigation/native';
 import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storeData } from './Menu';
 
 const CustomButton = (props) => {
     return (
@@ -62,6 +63,7 @@ const Grid = (props) => {
     const [playing, setPlaying] = React.useState(true);
     const [sound, setSound] = React.useState();
     const [volume, setVolume] = React.useState();
+    const [highscores, setHighscores] = React.useState({});
     const [grid, setGrid] = React.useState(() => {
         var grid = [];
         for (var i = 0; i < size; i++) {
@@ -73,15 +75,32 @@ const Grid = (props) => {
         return grid;
     });
 
-    React.useEffect(() => getData('@volume'), [])
+    React.useEffect(() => {
+        reset();
+    }, []);
 
-    const getData = async (key) => {
+    React.useEffect(() => getHighscores(), []);
+    React.useEffect(() => getVolume('@volume'), []);
+
+    const getHighscores = async () => {
+        try {
+            var highscores = { 5: '', 6: '', 7: '' };
+            for (var i = 5; i <= 7; i++) {
+                const value = await AsyncStorage.getItem(`@highscore-${i}`);
+                if (value !== null) highscores[i] = value;
+                else highscores[i] = '0';
+            }
+            setHighscores(highscores);
+        } catch (e) {
+        }
+    }
+
+    const getVolume = async (key) => {
         try {
             const value = await AsyncStorage.getItem(key);
             if (value !== null) setVolume(value);
             else setVolume('0.5');
         } catch (e) {
-            // error reading value
         }
     }
 
@@ -162,14 +181,21 @@ const Grid = (props) => {
 
 
     const gameOver = () => {
-        if (currNum == 25) setTimeout(() => playSound('win'), 200);
-        else setTimeout(() => playSound('lost'), 200);
-        for (var i = 0; i < size; i++) {
-            for (var j = 0; j < size; j++) {
-                if (grid[i][j].status == 'taken') setTile(i, j, 'lost');
+        if (currNum == size * size) playSound('win');
+        else {
+            playSound('lost');
+            for (var i = 0; i < size; i++) {
+                for (var j = 0; j < size; j++) {
+                    if (grid[i][j].status == 'taken') setTile(i, j, 'lost');
+                }
             }
         }
-        setTimeout(() => setPlaying(false), 1200);
+        if (Number(highscores[size]) < currNum - 1) {
+            if (currNum == size * size) storeData(`@highscore-${size}`, String(size * size));
+            else storeData(`@highscore-${size}`, String(currNum));
+            getHighscores();
+        }
+        setTimeout(() => setPlaying(false), 1000);
     }
 
     const createRow = (i) => {
@@ -191,7 +217,7 @@ const Grid = (props) => {
                         </View>
                         <View style={styles.bestscorewrap}>
                             <Text style={styles.yourscore, { fontSize: 20 }}>BEST:</Text>
-                            <Text style={styles.score, { fontSize: 25 }}>25</Text>
+                            <Text style={styles.score, { fontSize: 25 }}>{highscores[size]}</Text>
                         </View>
                         <CustomButton style={{ width: '90%', marginBottom: 5 }} onPress={() => {
                             reset();
@@ -235,10 +261,6 @@ const Grid = (props) => {
     }
 
     React.useEffect(() => {
-        reset();
-    }, []);
-
-    React.useEffect(() => {
         return sound
             ? () => {
                 sound.unloadAsync();
@@ -246,9 +268,7 @@ const Grid = (props) => {
             : undefined;
     }, [sound])
     return (
-        <>
-            {createGrid()}
-        </>
+        createGrid()
     );
 }
 

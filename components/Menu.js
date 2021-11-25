@@ -5,7 +5,7 @@ import { Icon } from 'react-native-elements';
 import { Slider } from 'react-native-elements/dist/slider/Slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const storeData = async (key, value) => {
+export const storeData = async (key, value) => {
     try {
         await AsyncStorage.setItem(key, value)
     } catch (e) {

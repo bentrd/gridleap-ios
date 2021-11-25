@@ -7,10 +7,9 @@ import { AdMobBanner } from "expo-ads-admob";
 export const Ad = (props) => {
     return (
         <AdMobBanner
-            bannerSize="smartBanner"
+            bannerSize="smartBannerPortrait"
             adUnitID={props.id}
             servePersonalizedAds='true'
-            onDidFailToReceiveAdWithError={(e) => console.log(e)}
         />
     );
 }
