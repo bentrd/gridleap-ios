@@ -4,9 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Title, Ad } from '../views/HomeScreen';
 import { Icon } from 'react-native-elements'
 import { useNavigation } from '@react-navigation/native';
-import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storeData } from './Menu';
+import Player from '../Player';
 
 const CustomButton = (props) => {
     return (
@@ -49,7 +49,7 @@ const Tile = (props) => {
                 },
             ]}>
             <Text style={{
-                fontSize: 40,
+                fontSize: 30,
                 color: (status == 'lost') ? 'wheat' : 'black'
             }}>{value}</Text>
         </Pressable>
@@ -61,8 +61,6 @@ const Grid = (props) => {
     const size = props.size;
     const [currNum, setCurrNum] = React.useState(1);
     const [playing, setPlaying] = React.useState(true);
-    const [sound, setSound] = React.useState();
-    const [volume, setVolume] = React.useState();
     const [highscores, setHighscores] = React.useState({});
     const [grid, setGrid] = React.useState(() => {
         var grid = [];
@@ -80,7 +78,6 @@ const Grid = (props) => {
     }, []);
 
     React.useEffect(() => getHighscores(), []);
-    React.useEffect(() => getVolume('@volume'), []);
 
     const getHighscores = async () => {
         try {
@@ -95,17 +92,7 @@ const Grid = (props) => {
         }
     }
 
-    const getVolume = async (key) => {
-        try {
-            const value = await AsyncStorage.getItem(key);
-            if (value !== null) setVolume(value);
-            else setVolume('0.5');
-        } catch (e) {
-        }
-    }
-
     const reset = () => {
-        playSound('click');
         var g = [];
         for (var i = 0; i < size; i++) {
             g[i] = [];
@@ -152,45 +139,28 @@ const Grid = (props) => {
         setGrid(g);
     }
 
-    const playSound = async (type) => {
-        const getPath = () => {
-            if (type == 'win') return require('../assets/sounds/win.mp3');
-            else if (type == 'lost') return require('../assets/sounds/lost.mp3');
-            else if (type == 'click') return require('../assets/sounds/click.mp3');
-            else return require('../assets/sounds/pop.mp3');
-        }
-        try {
-            const { sound } = await Audio.Sound.createAsync(
-                getPath()
-            );
-            setSound(sound);
-            await sound.setVolumeAsync((Number(volume) / 4).toFixed(2));
-            await sound.playAsync();
-        } catch (error) { }
-    }
-
     const next = (i, j) => {
         if (grid[i][j].status == 'possible') {
             setTile(i, j, 'taken', currNum);
             setCurrNum(currNum + 1);
             deletePossible();
             showPossible(i, j);
-            playSound();
+            Player.playSound('pop');
         }
     }
 
 
     const gameOver = () => {
-        if (currNum == size * size) playSound('win');
+        if (currNum == size * size) Player.playSound('win');
         else {
-            playSound('lost');
+            Player.playSound('lost');
             for (var i = 0; i < size; i++) {
                 for (var j = 0; j < size; j++) {
                     if (grid[i][j].status == 'taken') setTile(i, j, 'lost');
                 }
             }
         }
-        if (Number(highscores[size]) < currNum - 1) {
+        if (Number(highscores[size]) < currNum || currNum == size * size) {
             if (currNum == size * size) storeData(`@highscore-${size}`, String(size * size));
             else storeData(`@highscore-${size}`, String(currNum));
             getHighscores();
@@ -226,7 +196,7 @@ const Grid = (props) => {
                         </CustomButton>
                         <CustomButton style={{ width: '90%' }} onPress={() => {
                             navigation.navigate('home');
-                            playSound('click');
+                            Player.playSound('click');
                         }}>
                             <Text style={styles.popupbuttons}>menu</Text>
                         </CustomButton>
@@ -241,15 +211,16 @@ const Grid = (props) => {
         });
         return (
             <>
-                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '90%', height: 75, marginBottom: 20 }}>
+                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '90%', height: 75, marginBottom: 20 }}>
                     <CustomButton onPress={() => {
                         navigation.navigate('home');
-                        playSound('click');
+                        Player.playSound('click');
                     }}>
                         <Icon name='chevron-left' type='feather' size={30} />
                     </CustomButton>
                     <CustomButton onPress={() => {
                         reset();
+                        Player.playSound('click');
                     }}>
                         <Icon name='rotate-ccw' type='feather' />
                     </CustomButton>
@@ -260,13 +231,6 @@ const Grid = (props) => {
         )
     }
 
-    React.useEffect(() => {
-        return sound
-            ? () => {
-                sound.unloadAsync();
-            }
-            : undefined;
-    }, [sound])
     return (
         createGrid()
     );
@@ -295,7 +259,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontFamily: 'Questrial',
-        fontSize: 100,
+        fontSize: 75,
         color: 'wheat',
         textAlign: 'center',
         transform: [{ translateY: 20 }]
@@ -348,7 +312,6 @@ const styles = StyleSheet.create({
     },
     popup: {
         width: 0.7 * Dimensions.get('window').width,
-        height: 0.75 * Dimensions.get('window').width,
         backgroundColor: 'white',
         borderRadius: 30,
         display: 'flex',

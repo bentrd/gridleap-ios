@@ -2,8 +2,9 @@ import * as React from 'react';
 import { Pressable, StyleSheet, Text, View, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from 'react-native-elements';
-import { Slider } from 'react-native-elements/dist/slider/Slider';
+import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Player from '../Player';
 
 export const storeData = async (key, value) => {
     try {
@@ -15,9 +16,13 @@ export const storeData = async (key, value) => {
 
 export const TravellerButton = (props) => {
     const navigation = useNavigation();
+    const handleClick = () => {
+        Player.playSound('click');
+        navigation.navigate(props.dest);
+    }
     return (
         <Pressable
-            onPress={() => navigation.navigate(props.dest)}
+            onPress={() => handleClick()}
             style={({ pressed }) => [
                 {
                     backgroundColor: pressed
@@ -55,29 +60,30 @@ export default Menu = ({ navigation }) => {
         const onValueChange = value => {
             clearTimeout(sliderTimeoutId)
             sliderTimeoutId = setTimeout(() => {
-                setVolume(String(value));
-                storeData('@volume', String(value));
-            }, 100)
+                setVolume(String(value.toFixed(2)));
+                storeData('@volume', String(value.toFixed(2)));
+                Player.playSound('pop');
+            }, 150)
         }
         if (showSettings) {
             return (
                 <View style={styles.popupwrap}>
                     <View style={styles.popup}>
                         <Pressable onPress={() => {
+                            Player.playSound('click');
                             setShowSettings(false);
                         }} style={{ alignSelf: 'flex-end', padding: 0, margin: 0 }}><Icon name='x' type='feather' /></Pressable>
-                        <Text style={styles.popuptitle}>Settings</Text>
+                        <Text style={styles.popuptitle}>Volume</Text>
                         <View style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
                             <Icon name='volume-2' type='feather' size={30} />
                             <Slider
-                                style={{ width: 190, height: 20, margin: 10 }}
+                                style={{ width: 200, height: 40 }}
                                 minimumValue={0}
-                                maximumValue={1}
-                                minimumTrackTintColor="#666"
-                                maximumTrackTintColor="#eee"
-                                thumbStyle={{ width: 20, height: 20, backgroundColor: 'wheat', borderWidth: 3, borderColor: '#666' }}
+                                maximumValue={0.2}
+                                minimumTrackTintColor="#242424"
+                                maximumTrackTintColor="wheat"
                                 value={Number(volume)}
-                                onValueChange={(value) => onValueChange(value)}
+                                onValueChange={value => onValueChange(value)}
                             />
                         </View>
                     </View>
@@ -93,6 +99,10 @@ export default Menu = ({ navigation }) => {
                 <TravellerButton dest="game5">Play - 5x5</TravellerButton>
                 <TravellerButton dest="game6">Play - 6x6</TravellerButton>
                 <TravellerButton dest="game7">Play - 7x7</TravellerButton>
+                <View><Text>&nbsp;</Text></View>
+                <View><Text>&nbsp;</Text></View>
+                <View><Text>&nbsp;</Text></View>
+                <View><Text>&nbsp;</Text></View>
                 <Pressable style={({ pressed }) => [
                     {
                         backgroundColor: pressed

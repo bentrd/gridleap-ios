@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontFamily: 'Questrial',
-        fontSize: 100,
+        fontSize: 75,
         color: 'wheat',
         textAlign: 'center',
         transform: [{ translateY: 20 }]
