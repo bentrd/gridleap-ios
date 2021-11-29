@@ -7,6 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storeData } from './Menu';
 import Player from '../Player';
+import { RFPercentage } from 'react-native-responsive-fontsize';
+import Spacer from './Spacer';
 
 const CustomButton = (props) => {
     return (
@@ -49,7 +51,7 @@ const Tile = (props) => {
                 },
             ]}>
             <Text style={{
-                fontSize: 30,
+                fontSize: RFPercentage(5),
                 color: (status == 'lost') ? 'wheat' : 'black'
             }}>{value}</Text>
         </Pressable>
@@ -211,18 +213,18 @@ const Grid = (props) => {
         });
         return (
             <>
-                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '90%', height: 75, marginBottom: 20 }}>
+                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: eval(0.8 * Dimensions.get('window').width), marginBottom: 20 }}>
                     <CustomButton onPress={() => {
                         navigation.navigate('home');
                         Player.playSound('click');
                     }}>
-                        <Icon name='chevron-left' type='feather' size={30} />
+                        <Icon name='chevron-left' type='feather' size={RFPercentage(5)} />
                     </CustomButton>
                     <CustomButton onPress={() => {
                         reset();
                         Player.playSound('click');
                     }}>
-                        <Icon name='rotate-ccw' type='feather' />
+                        <Icon name='rotate-ccw' type='feather' size={RFPercentage(4)} />
                     </CustomButton>
                 </View>
                 <View style={styles.grid}>{rows}</View>
@@ -240,9 +242,8 @@ export default Game = (props) => {
     return (
         <SafeAreaView style={styles.main}>
             <Title />
-            <View style={styles.spacer} />
+            <Spacer size={5} />
             <Grid size={props.size} />
-            <View style={styles.spacer} />
             <Ad id='ca-app-pub-5015586611437235/3396584913' />
         </SafeAreaView>
     );
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontFamily: 'Questrial',
-        fontSize: 75,
+        fontSize: RFPercentage(13),
         color: 'wheat',
         textAlign: 'center',
         transform: [{ translateY: 20 }]
@@ -289,17 +290,14 @@ const styles = StyleSheet.create({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: 75,
-        height: 50,
+        width: RFPercentage(7),
+        height: RFPercentage(7),
         borderRadius: 15,
         margin: 20,
         shadowColor: '#bbb',
         shadowOffset: { width: 0, height: 5 },
         shadowRadius: 0,
         shadowOpacity: 1
-    },
-    spacer: {
-        height: '15%'
     },
     popupwrap: {
         height: Dimensions.get('window').height,

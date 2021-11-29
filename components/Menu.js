@@ -5,6 +5,7 @@ import { Icon } from 'react-native-elements';
 import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Player from '../Player';
+import { RFPercentage } from 'react-native-responsive-fontsize';
 
 export const storeData = async (key, value) => {
     try {
@@ -72,10 +73,12 @@ export default Menu = ({ navigation }) => {
                         <Pressable onPress={() => {
                             Player.playSound('click');
                             setShowSettings(false);
-                        }} style={{ alignSelf: 'flex-end', padding: 0, margin: 0 }}><Icon name='x' type='feather' /></Pressable>
-                        <Text style={styles.popuptitle}>Volume</Text>
+                        }} style={{ alignSelf: 'flex-end', padding: 0, margin: 0 }}>
+                            <Icon name='x' type='feather' />
+                        </Pressable>
+                        <Text style={styles.popuptitle}>Settings</Text>
                         <View style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
-                            <Icon name='volume-2' type='feather' size={30} />
+                            <Icon name='volume-2' type='feather' size={RFPercentage(5)} style={{ flexGrow: 2, marginEnd: RFPercentage(2) }} />
                             <Slider
                                 style={{ width: 200, height: 40 }}
                                 minimumValue={0}
@@ -84,6 +87,7 @@ export default Menu = ({ navigation }) => {
                                 maximumTrackTintColor="wheat"
                                 value={Number(volume)}
                                 onValueChange={value => onValueChange(value)}
+                                style={{ flexGrow: 5 }}
                             />
                         </View>
                     </View>
@@ -131,7 +135,7 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         fontFamily: 'Questrial',
-        fontSize: 30,
+        fontSize: RFPercentage(5),
         textAlign: 'center'
     },
     menu: {
@@ -150,6 +154,7 @@ const styles = StyleSheet.create({
     },
     popup: {
         width: 0.7 * Dimensions.get('window').width,
+        maxWidth: 500,
         backgroundColor: 'white',
         borderRadius: 30,
         display: 'flex',

@@ -2,7 +2,7 @@
   "expo": {
     "name": "GridLeap",
     "slug": "GridLeap",
-    "version": "1.0.3",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.benjamin.tordjman.gridleap",
-      "buildNumber": "1.0.3",
+      "buildNumber": "1.0.5",
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-5015586611437235~2777939139"
       }
